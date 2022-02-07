@@ -2,19 +2,47 @@ package main
 
 import "testing"
 
-func TestOperator(t *testing.T) {
-	var tape Tape
+func TestInitialization(t *testing.T) {
+	tape := newTape()
 
-	t.Run("Brainfuck's tape is initialized with 30000 bytes of 0", func(t *testing.T) {
-		wantLength := 30000
-		if len(tape) != wantLength {
-			t.Errorf("length: got %d want %d", len(tape), wantLength)
-		}
+	wantLength := 30000
+	gotLength := len(tape.data)
+	if gotLength != wantLength {
+		t.Errorf("length: got %d want %d", gotLength, wantLength)
+	}
 
-		for i := 0; i < wantLength; i++ {
-			if tape[i] != 0 {
-				t.Errorf("tape is not initialized with all 0")
-			}
+	for i := 0; i < wantLength; i++ {
+		if tape.data[i] != 0 {
+			t.Fatalf("tape is not initialized with all 0")
 		}
+	}
+}
+
+func TestOperators(t *testing.T) {
+	tape := newTape()
+
+	t.Run("+ increment the byte at data pointer", func(t *testing.T) {
+		command(tape, '+')
+
+		assertPointer(t, tape, 0)
+		assertValue(t, tape, 1)
 	})
+}
+
+func assertPointer(t *testing.T, tape *Tape, want int) {
+	t.Helper()
+
+	got := tape.ptr
+	if got != want {
+		t.Errorf("pointer: got %d want %d", got, want)
+	}
+}
+
+func assertValue(t *testing.T, tape *Tape, want int) {
+	t.Helper()
+
+	got := tape.data[0]
+	if got != want {
+		t.Errorf("value: got %d want %d", got, want)
+	}
 }
