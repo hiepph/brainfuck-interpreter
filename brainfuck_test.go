@@ -19,13 +19,30 @@ func TestInitialization(t *testing.T) {
 }
 
 func TestOperators(t *testing.T) {
-	tape := newTape()
+	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
+		tape := newTape()
 
-	t.Run("+ increment the byte at data pointer", func(t *testing.T) {
 		command(tape, '+')
 
 		assertPointer(t, tape, 0)
 		assertValue(t, tape, 1)
+
+		command(tape, '-')
+		assertPointer(t, tape, 0)
+		assertValue(t, tape, 0)
+	})
+
+	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
+		tape := newTape()
+
+		command(tape, '>')
+		assertPointer(t, tape, 1)
+
+		command(tape, '>')
+		assertPointer(t, tape, 2)
+
+		command(tape, '<')
+		assertPointer(t, tape, 1)
 	})
 }
 

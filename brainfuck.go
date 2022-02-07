@@ -25,5 +25,16 @@ func interprete(in io.Reader) {
 }
 
 func command(tape *Tape, op rune) {
-	tape.data[tape.ptr]++
+	switch op {
+	case '+':
+		tape.data[tape.ptr]++
+	case '-':
+		tape.data[tape.ptr]--
+	case '>':
+		tape.ptr++
+	case '<':
+		tape.ptr--
+	default:
+		return
+	}
 }
