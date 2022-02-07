@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 )
 
@@ -16,11 +15,12 @@ func newTape() *Tape {
 }
 
 func interprete(in io.Reader) {
+	tape := newTape()
+
 	s := bufio.NewScanner(in)
 	s.Split(bufio.ScanRunes)
-
 	for s.Scan() {
-		fmt.Println(s.Text())
+		command(tape, rune(s.Bytes()[0]))
 	}
 }
 
