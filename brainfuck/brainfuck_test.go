@@ -1,9 +1,9 @@
-package main
+package brainfuck
 
 import "testing"
 
 func TestInitialization(t *testing.T) {
-	tape := newTape()
+	tape := NewTape()
 
 	wantLength := 30000
 	gotLength := len(tape.data)
@@ -20,30 +20,41 @@ func TestInitialization(t *testing.T) {
 
 func TestOperators(t *testing.T) {
 	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
-		tape := newTape()
+		tape := NewTape()
 
-		command(tape, '+')
+		Command(tape, '+')
 
 		assertPointer(t, tape, 0)
 		assertValue(t, tape, 1)
 
-		command(tape, '-')
+		Command(tape, '-')
 		assertPointer(t, tape, 0)
 		assertValue(t, tape, 0)
 	})
 
 	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
-		tape := newTape()
+		tape := NewTape()
 
-		command(tape, '>')
+		Command(tape, '>')
 		assertPointer(t, tape, 1)
 
-		command(tape, '>')
+		Command(tape, '>')
 		assertPointer(t, tape, 2)
 
-		command(tape, '<')
+		Command(tape, '<')
 		assertPointer(t, tape, 1)
 	})
+
+	// t.Run(". oupput the byte at the data pointer", func(t *testing.T) {
+	// 	tape := NewTape()
+
+	// 	for i := 0; i < 72; i++ {
+	// 		Command(tape, '+')
+	// 	}
+
+	// 	assertPointer(t, tape, 0)
+	// 	assertOutput(t, tape, 'H')
+	// })
 }
 
 func assertPointer(t *testing.T, tape *Tape, want int) {
@@ -63,3 +74,13 @@ func assertValue(t *testing.T, tape *Tape, want int) {
 		t.Errorf("value: got %d want %d", got, want)
 	}
 }
+
+// func assertOutput(t *testing.T, tape *Tape, want rune) {
+// 	t.Helper()
+
+// 	// TODO
+// 	// got :=
+// 	if got != want {
+// 		t.Errorf("output: got %c want %c", got, want)
+// 	}
+// }

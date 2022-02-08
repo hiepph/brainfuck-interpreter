@@ -1,8 +1,12 @@
 package main
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/hiepph/brainfuck-interpreter/brainfuck"
+)
 
 func main() {
 	in := "++>+++++"
-	interprete(strings.NewReader(in))
+	brainfuck.Interprete(strings.NewReader(in))
 }

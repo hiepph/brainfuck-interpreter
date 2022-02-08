@@ -1,4 +1,4 @@
-package main
+package brainfuck
 
 import (
 	"bufio"
@@ -10,21 +10,21 @@ type Tape struct {
 	ptr  int
 }
 
-func newTape() *Tape {
+func NewTape() *Tape {
 	return &Tape{make([]int, 30000, 30000), 0}
 }
 
-func interprete(in io.Reader) {
-	tape := newTape()
+func Interprete(in io.Reader) {
+	tape := NewTape()
 
 	s := bufio.NewScanner(in)
 	s.Split(bufio.ScanRunes)
 	for s.Scan() {
-		command(tape, rune(s.Bytes()[0]))
+		Command(tape, rune(s.Bytes()[0]))
 	}
 }
 
-func command(tape *Tape, op rune) {
+func Command(tape *Tape, op rune) {
 	switch op {
 	case '+':
 		tape.data[tape.ptr]++
