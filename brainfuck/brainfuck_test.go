@@ -15,48 +15,63 @@ func TestLexer(t *testing.T) {
 	assertTokens(t, got, want)
 }
 
-// func TestOperators(t *testing.T) {
-// 	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
-// 		tape := NewTape(nil)
+func NewTokens(stream string) []rune {
+	return Lex(strings.NewReader(stream))
+}
 
-// 		tape.Command('+')
+func TestInstruction(t *testing.T) {
+	t.Run("moves forward to the next token", func(t *testing.T) {
+		tokens := NewTokens("+-")
+		instr := NewInstruction(tokens, NewTape(nil))
 
-// 		assertPointer(t, tape, 0)
-// 		assertValue(t, tape, 1)
+		instr.Next()
+		assertInstructionPointer(t, instr, 0)
 
-// 		tape.Command('-')
-// 		assertPointer(t, tape, 0)
-// 		assertValue(t, tape, 0)
-// 	})
+		instr.Next()
+		assertInstructionPointer(t, instr, 1)
+	})
 
-// 	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
-// 		tape := NewTape(nil)
+	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
+		tokens := NewTokens("+-")
+		instr := NewInstruction(tokens, NewTape(nil))
+		instr.Next()
 
-// 		tape.Command('>')
-// 		assertPointer(t, tape, 1)
+		assertTapePointer(t, instr.tape, 0)
+		assertTapeValue(t, instr.tape, 1)
 
-// 		tape.Command('>')
-// 		assertPointer(t, tape, 2)
+		instr.Next()
+		assertTapePointer(t, instr.tape, 0)
+		assertTapeValue(t, instr.tape, 0)
+	})
 
-// 		tape.Command('<')
-// 		assertPointer(t, tape, 1)
-// 	})
+	// t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
+	// 	tape := NewTape(nil)
 
-// 	t.Run(". output the byte at the data pointer", func(t *testing.T) {
-// 		out := &bytes.Buffer{}
-// 		tape := NewTape(out)
+	// 	tape.Command('>')
+	// 	assertPointer(t, tape, 1)
 
-// 		for i := 0; i < 72; i++ {
-// 			tape.Command('+')
-// 		}
+	// 	tape.Command('>')
+	// 	assertPointer(t, tape, 2)
 
-// 		tape.Command('.')
-// 		assertPointer(t, tape, 0)
-// 		assertOutput(t, out.String(), "H")
-// 	})
+	// 	tape.Command('<')
+	// 	assertPointer(t, tape, 1)
+	// })
 
-// 	t.Run("[ skip")
-// }
+	// t.Run(". output the byte at the data pointer", func(t *testing.T) {
+	// 	out := &bytes.Buffer{}
+	// 	tape := NewTape(out)
+
+	// 	for i := 0; i < 72; i++ {
+	// 		tape.Command('+')
+	// 	}
+
+	// 	tape.Command('.')
+	// 	assertPointer(t, tape, 0)
+	// 	assertOutput(t, out.String(), "H")
+	// })
+
+	// t.Run("[ skip")
+}
 
 func assertTokens(t testing.TB, got, want []rune) {
 	if len(got) != len(want) {
@@ -70,7 +85,16 @@ func assertTokens(t testing.TB, got, want []rune) {
 	}
 }
 
-func assertPointer(t *testing.T, tape *Tape, want int) {
+func assertInstructionPointer(t *testing.T, instr *Instruction, want int) {
+	t.Helper()
+
+	got := instr.ptr
+	if got != want {
+		t.Errorf("pointer: got %d want %d", got, want)
+	}
+}
+
+func assertTapePointer(t *testing.T, tape *Tape, want int) {
 	t.Helper()
 
 	got := tape.ptr
@@ -79,18 +103,11 @@ func assertPointer(t *testing.T, tape *Tape, want int) {
 	}
 }
 
-func assertValue(t *testing.T, tape *Tape, want int) {
+func assertTapeValue(t *testing.T, tape *Tape, want int) {
 	t.Helper()
 
 	got := tape.data[0]
 	if got != want {
 		t.Errorf("value: got %d want %d", got, want)
-	}
-}
-
-func assertOutput(t *testing.T, got, want string) {
-	t.Helper()
-	if got != want {
-		t.Errorf("output: got %s want %s", got, want)
 	}
 }
