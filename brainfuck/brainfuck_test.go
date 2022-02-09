@@ -73,7 +73,14 @@ func TestInstruction(t *testing.T) {
 		assertOutput(t, out.String(), "H")
 	})
 
-	// t.Run("[ skip")
+	t.Run("[ moves the pointer forward if the current byte is non-zero", func(t *testing.T) {
+		stream := "+[>+]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+
+		instr.Fetch() // 0: +
+		instr.Fetch() // 1: [
+		assertInstructionPointer(t, instr, 2)
+	})
 }
 
 func assertTokens(t testing.TB, got, want []rune) {

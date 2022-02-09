@@ -51,6 +51,12 @@ func (instr *Instruction) Execute() {
 		tape.ptr--
 	case '.':
 		fmt.Fprintf(tape.out, "%c", instr.tape.data[tape.ptr])
+	case '[':
+		if tape.data[tape.ptr] != 0 {
+			instr.Fetch()
+		} else {
+			//
+		}
 	default:
 		return
 	}
