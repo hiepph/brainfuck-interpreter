@@ -6,29 +6,59 @@ import (
 	"io"
 )
 
+var ACCEPTED_TOKENS = map[rune]bool{
+	'+': true,
+	'-': true,
+	'[': true,
+	']': true,
+	'>': true,
+	'<': true,
+	'.': true,
+	',': true,
+}
+
 type Tape struct {
 	data []int
 	ptr  int
 	out  io.Writer
 }
 
-func NewTape(out io.Writer) *Tape {
-	return &Tape{make([]int, 30000, 30000), 0, out}
+type Instruction struct {
+	ptr    int
+	tokens []rune
+	tape   *Tape
 }
 
-// Interprete reads the source and through 4 stages runs the program.
-// 1. Lexer: splits the source into tokens
-// 2. Parser: outlines rules of the tokens
-// 3. AST: hierarchical representation of the tokens
-// 4. Interpreter: traverse the tree and run the operations
-func Interprete(in io.Reader, out io.Writer) {
-	tape := NewTape(out)
+func NewTape(out io.Writer) *Tape {
+	return &Tape{data: make([]int, 30000, 30000), ptr: 0, out: out}
+}
 
+func NewInstruction(tokens []rune, tape *Tape) *Instruction {
+	return &Instruction{ptr: 0, tokens: tokens, tape: tape}
+}
+
+func Lex(in io.Reader) (tokens []rune) {
 	s := bufio.NewScanner(in)
 	s.Split(bufio.ScanRunes)
 	for s.Scan() {
-		tape.Command(rune(s.Bytes()[0]))
+		ch := rune(s.Bytes()[0])
+		if _, found := ACCEPTED_TOKENS[ch]; found {
+			tokens = append(tokens, ch)
+		}
 	}
+
+	return
+}
+
+// Interprete reads the source, breaks down into operation tokens,
+// stores in an instruction array and traverses the array to runs the program
+func Interprete(in io.Reader, out io.Writer) {
+	tokens := Lex(in)
+
+	tape := NewTape(out)
+
+	instr := NewInstruction(tokens, tape)
+	instr.Next()
 }
 
 // Command modifies the memory tape or reads from input or writes to output
@@ -58,4 +88,7 @@ func (tape *Tape) Command(op rune) {
 	default:
 		return
 	}
+}
+
+func (instr *Instruction) Next() {
 }

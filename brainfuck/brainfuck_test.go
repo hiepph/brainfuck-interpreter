@@ -1,65 +1,73 @@
 package brainfuck
 
 import (
-	"bytes"
+	"strings"
 	"testing"
 )
 
-func TestInitialization(t *testing.T) {
-	tape := NewTape(nil)
+func TestLexer(t *testing.T) {
+	stream := `++
+[ >- ]`
 
-	wantLength := 30000
-	gotLength := len(tape.data)
-	if gotLength != wantLength {
-		t.Errorf("length: got %d want %d", gotLength, wantLength)
-	}
+	got := Lex(strings.NewReader(stream))
+	want := []rune{'+', '+', '[', '>', '-', ']'}
 
-	for i := 0; i < wantLength; i++ {
-		if tape.data[i] != 0 {
-			t.Fatalf("tape is not initialized with all 0")
-		}
-	}
+	assertTokens(t, got, want)
 }
 
-func TestOperators(t *testing.T) {
-	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
-		tape := NewTape(nil)
+// func TestOperators(t *testing.T) {
+// 	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
+// 		tape := NewTape(nil)
 
-		tape.Command('+')
+// 		tape.Command('+')
 
-		assertPointer(t, tape, 0)
-		assertValue(t, tape, 1)
+// 		assertPointer(t, tape, 0)
+// 		assertValue(t, tape, 1)
 
-		tape.Command('-')
-		assertPointer(t, tape, 0)
-		assertValue(t, tape, 0)
-	})
+// 		tape.Command('-')
+// 		assertPointer(t, tape, 0)
+// 		assertValue(t, tape, 0)
+// 	})
 
-	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
-		tape := NewTape(nil)
+// 	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
+// 		tape := NewTape(nil)
 
-		tape.Command('>')
-		assertPointer(t, tape, 1)
+// 		tape.Command('>')
+// 		assertPointer(t, tape, 1)
 
-		tape.Command('>')
-		assertPointer(t, tape, 2)
+// 		tape.Command('>')
+// 		assertPointer(t, tape, 2)
 
-		tape.Command('<')
-		assertPointer(t, tape, 1)
-	})
+// 		tape.Command('<')
+// 		assertPointer(t, tape, 1)
+// 	})
 
-	t.Run(". output the byte at the data pointer", func(t *testing.T) {
-		out := &bytes.Buffer{}
-		tape := NewTape(out)
+// 	t.Run(". output the byte at the data pointer", func(t *testing.T) {
+// 		out := &bytes.Buffer{}
+// 		tape := NewTape(out)
 
-		for i := 0; i < 72; i++ {
-			tape.Command('+')
+// 		for i := 0; i < 72; i++ {
+// 			tape.Command('+')
+// 		}
+
+// 		tape.Command('.')
+// 		assertPointer(t, tape, 0)
+// 		assertOutput(t, out.String(), "H")
+// 	})
+
+// 	t.Run("[ skip")
+// }
+
+func assertTokens(t testing.TB, got, want []rune) {
+	if len(got) != len(want) {
+		t.Fatalf("Lexing error: different length, got %d want %d", len(got), len(want))
+	}
+
+	for i, _ := range got {
+		if got[i] != want[i] {
+			t.Fatalf("Token[%d] is wrong: got %c want %c", i, got[i], want[i])
 		}
-
-		tape.Command('.')
-		assertPointer(t, tape, 0)
-		assertOutput(t, out.String(), "H")
-	})
+	}
 }
 
 func assertPointer(t *testing.T, tape *Tape, want int) {
