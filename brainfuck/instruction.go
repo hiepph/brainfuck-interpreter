@@ -12,9 +12,9 @@ func NewInstruction(tokens []rune, tape *Tape) *Instruction {
 	return &Instruction{ptr: -1, tokens: tokens, tape: tape}
 }
 
-func (instr *Instruction) Next() {
+func (instr *Instruction) Fetch() {
 	instr.ptr++
-	instr.Command()
+	instr.Execute()
 }
 
 // Command modifies the memory tape or reads from input or writes to output
@@ -29,7 +29,7 @@ func (instr *Instruction) Next() {
 //    ']'; move forward to the next command otherwise.
 // ]: if the byte at the data pointer is nonzero, jump back to the command
 //    after matching '['; move forward to the next command otherwise.
-func (instr *Instruction) Command() {
+func (instr *Instruction) Execute() {
 	op := instr.tokens[instr.ptr]
 	tape := instr.tape
 

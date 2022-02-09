@@ -1,6 +1,9 @@
 * Overview
   Brainfuck interpreter written in Go.
 
+  + Lexer
+  + Fetch and Execute cycle
+
 * Usage
 
 * Reference

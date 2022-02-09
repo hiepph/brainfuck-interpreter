@@ -24,10 +24,10 @@ func TestInstruction(t *testing.T) {
 		tokens := NewTokens("+-")
 		instr := NewInstruction(tokens, NewTape(nil))
 
-		instr.Next()
+		instr.Fetch()
 		assertInstructionPointer(t, instr, 0)
 
-		instr.Next()
+		instr.Fetch()
 		assertInstructionPointer(t, instr, 1)
 	})
 
@@ -35,11 +35,11 @@ func TestInstruction(t *testing.T) {
 		tokens := NewTokens("+-")
 		instr := NewInstruction(tokens, NewTape(nil))
 
-		instr.Next()
+		instr.Fetch()
 		assertTapePointer(t, instr.tape, 0)
 		assertTapeValue(t, instr.tape, 1)
 
-		instr.Next()
+		instr.Fetch()
 		assertTapePointer(t, instr.tape, 0)
 		assertTapeValue(t, instr.tape, 0)
 	})
@@ -48,10 +48,10 @@ func TestInstruction(t *testing.T) {
 		tokens := NewTokens("><")
 		instr := NewInstruction(tokens, NewTape(nil))
 
-		instr.Next()
+		instr.Fetch()
 		assertTapePointer(t, instr.tape, 1)
 
-		instr.Next()
+		instr.Fetch()
 		assertTapePointer(t, instr.tape, 0)
 	})
 

@@ -37,5 +37,5 @@ func Interprete(in io.Reader, out io.Writer) {
 	tape := NewTape(out)
 
 	instr := NewInstruction(tokens, tape)
-	instr.Next()
+	instr.Fetch()
 }
