@@ -34,8 +34,8 @@ func TestInstruction(t *testing.T) {
 	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
 		tokens := NewTokens("+-")
 		instr := NewInstruction(tokens, NewTape(nil))
-		instr.Next()
 
+		instr.Next()
 		assertTapePointer(t, instr.tape, 0)
 		assertTapeValue(t, instr.tape, 1)
 
@@ -44,18 +44,16 @@ func TestInstruction(t *testing.T) {
 		assertTapeValue(t, instr.tape, 0)
 	})
 
-	// t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
-	// 	tape := NewTape(nil)
+	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
+		tokens := NewTokens("><")
+		instr := NewInstruction(tokens, NewTape(nil))
 
-	// 	tape.Command('>')
-	// 	assertPointer(t, tape, 1)
+		instr.Next()
+		assertTapePointer(t, instr.tape, 1)
 
-	// 	tape.Command('>')
-	// 	assertPointer(t, tape, 2)
-
-	// 	tape.Command('<')
-	// 	assertPointer(t, tape, 1)
-	// })
+		instr.Next()
+		assertTapePointer(t, instr.tape, 0)
+	})
 
 	// t.Run(". output the byte at the data pointer", func(t *testing.T) {
 	// 	out := &bytes.Buffer{}
