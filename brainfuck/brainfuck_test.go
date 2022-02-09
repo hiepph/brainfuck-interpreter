@@ -1,6 +1,7 @@
 package brainfuck
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -55,18 +56,22 @@ func TestInstruction(t *testing.T) {
 		assertTapePointer(t, instr.tape, 0)
 	})
 
-	// t.Run(". output the byte at the data pointer", func(t *testing.T) {
-	// 	out := &bytes.Buffer{}
-	// 	tape := NewTape(out)
+	t.Run(". output the byte at the data pointer", func(t *testing.T) {
+		var stream strings.Builder
+		for i := 0; i < 72; i++ {
+			stream.WriteRune('+')
+		}
+		stream.WriteRune('.')
+		tokens := NewTokens(stream.String())
 
-	// 	for i := 0; i < 72; i++ {
-	// 		tape.Command('+')
-	// 	}
+		out := &bytes.Buffer{}
+		instr := NewInstruction(tokens, NewTape(out))
 
-	// 	tape.Command('.')
-	// 	assertPointer(t, tape, 0)
-	// 	assertOutput(t, out.String(), "H")
-	// })
+		for ok := instr.Fetch(); ok; ok = instr.Fetch() {
+		}
+		assertTapePointer(t, instr.tape, 0)
+		assertOutput(t, out.String(), "H")
+	})
 
 	// t.Run("[ skip")
 }
@@ -107,5 +112,12 @@ func assertTapeValue(t *testing.T, tape *Tape, want int) {
 	got := tape.data[0]
 	if got != want {
 		t.Errorf("value: got %d want %d", got, want)
+	}
+}
+
+func assertOutput(t *testing.T, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("output: got %s want %s", got, want)
 	}
 }

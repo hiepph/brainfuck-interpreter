@@ -12,9 +12,16 @@ func NewInstruction(tokens []rune, tape *Tape) *Instruction {
 	return &Instruction{ptr: -1, tokens: tokens, tape: tape}
 }
 
-func (instr *Instruction) Fetch() {
+// Fetch increase moves the pointer to the next tokens.
+// Returns whether it successfully fetch and execute one.
+func (instr *Instruction) Fetch() bool {
 	instr.ptr++
+	if instr.ptr >= len(instr.tokens) {
+		return false
+	}
+
 	instr.Execute()
+	return true
 }
 
 // Command modifies the memory tape or reads from input or writes to output
