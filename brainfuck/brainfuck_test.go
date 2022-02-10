@@ -113,9 +113,13 @@ func TestInstruction(t *testing.T) {
 		assertTapeValue(t, instr.tape, 0)
 	})
 
-	// t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
+	t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
+		stream := "+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil))
 
-	// })
+		instr.Fetch() // +
+		assertCannotFetch(t, instr.Fetch())
+	})
 }
 
 func assertTokens(t testing.TB, got, want []rune) {
@@ -161,5 +165,12 @@ func assertOutput(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("output: got %s want %s", got, want)
+	}
+}
+
+func assertCannotFetch(t *testing.T, isAvailableToFetch bool) {
+	t.Helper()
+	if isAvailableToFetch {
+		t.Errorf("Shouldn't fetch anymore instruction.")
 	}
 }
