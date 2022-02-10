@@ -7,20 +7,28 @@ import (
 )
 
 func TestLexer(t *testing.T) {
-	stream := `++
+	input := `++
 [ >- ]`
 
-	got := Lex(strings.NewReader(stream))
+	got := Lex(strings.NewReader(input))
 	want := []rune{'+', '+', '[', '>', '-', ']'}
 
 	assertTokens(t, got, want)
 }
 
-func NewTokens(stream string) []rune {
-	return Lex(strings.NewReader(stream))
+func NewTokens(input string) []rune {
+	return Lex(strings.NewReader(input))
 }
 
 func TestInstruction(t *testing.T) {
+	t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
+		input := "+"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
+
+		instr.Fetch() // +
+		assertCannotFetch(t, instr.Fetch())
+	})
+
 	t.Run("moves forward to the next token", func(t *testing.T) {
 		tokens := NewTokens("+-")
 		instr := NewInstruction(tokens, NewTape(nil))
@@ -57,12 +65,12 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run(". output the byte at the data pointer", func(t *testing.T) {
-		var stream strings.Builder
+		var input strings.Builder
 		for i := 0; i < 72; i++ {
-			stream.WriteRune('+')
+			input.WriteRune('+')
 		}
-		stream.WriteRune('.')
-		tokens := NewTokens(stream.String())
+		input.WriteRune('.')
+		tokens := NewTokens(input.String())
 
 		out := &bytes.Buffer{}
 		instr := NewInstruction(tokens, NewTape(out))
@@ -74,8 +82,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ moves the pointer forward if the current byte is non-zero", func(t *testing.T) {
-		stream := "+[>+]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+		input := "+[>+]"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [
@@ -83,16 +91,16 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ jumps the pointer after the matching ] if current byte is zero", func(t *testing.T) {
-		stream := "[>+]+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+		input := "[>+]+"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
 
 		instr.Fetch() // 0: [ -> 4: +
 		assertInstructionPointer(t, instr, 4)
 	})
 
 	t.Run("] moves the pointer foward if the current byte is zero", func(t *testing.T) {
-		stream := "]+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+		input := "]+"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
 
 		instr.Fetch()
 		assertInstructionPointer(t, instr, 1)
@@ -100,8 +108,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("] moves the pointer after the matching [ if the current byte is non-zero", func(t *testing.T) {
-		stream := "++[-]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+		input := "++[-]"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: +
@@ -111,14 +119,6 @@ func TestInstruction(t *testing.T) {
 		instr.Fetch() // 4: ] -> 3: -
 		assertInstructionPointer(t, instr, 3)
 		assertTapeValue(t, instr.tape, 0)
-	})
-
-	t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
-		stream := "+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil))
-
-		instr.Fetch() // +
-		assertCannotFetch(t, instr.Fetch())
 	})
 }
 
@@ -164,7 +164,7 @@ func assertTapeValue(t *testing.T, tape *Tape, want int) {
 func assertOutput(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
-		t.Errorf("output: got %s want %s", got, want)
+		t.Errorf("output: got %q want %q", got, want)
 	}
 }
 
@@ -172,5 +172,37 @@ func assertCannotFetch(t *testing.T, isAvailableToFetch bool) {
 	t.Helper()
 	if isAvailableToFetch {
 		t.Errorf("Shouldn't fetch anymore instruction.")
+	}
+}
+
+func TestIntegration(t *testing.T) {
+	table := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "Single character",
+			input: `++ > +++++
+[ <+ >- ]
+++++ ++++
+[ <+++ +++ >- ]
+< .
+`,
+			want: "7"},
+		{name: "Hello World",
+			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
+>---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
+			want: "Hello World!"},
+	}
+
+	for _, test := range table {
+		t.Run(test.name, func(t *testing.T) {
+			out := &bytes.Buffer{}
+			instr := NewInstruction(NewTokens(test.input), NewTape(out))
+
+			for ok := instr.Fetch(); ok; ok = instr.Fetch() {
+			}
+			assertOutput(t, out.String(), test.want)
+		})
 	}
 }
