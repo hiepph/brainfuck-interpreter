@@ -152,7 +152,7 @@ func assertTapePointer(t *testing.T, tape *Tape, want int) {
 	}
 }
 
-func assertTapeValue(t *testing.T, tape *Tape, want int) {
+func assertTapeValue(t *testing.T, tape *Tape, want int8) {
 	t.Helper()
 
 	got := tape.data[0]
@@ -182,6 +182,7 @@ func TestIntegration(t *testing.T) {
 		want  string
 	}{
 		{
+			// refer: https://www.wikiwand.com/en/Brainfuck
 			name:  "Single character",
 			input: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
 			want:  "7",
