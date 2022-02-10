@@ -181,18 +181,17 @@ func TestIntegration(t *testing.T) {
 		input string
 		want  string
 	}{
-		{name: "Single character",
-			input: `++ > +++++
-[ <+ >- ]
-++++ ++++
-[ <+++ +++ >- ]
-< .
-`,
-			want: "7"},
-		{name: "Hello World",
-			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
->---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
-			want: "Hello World!"},
+		{
+			name:  "Single character",
+			input: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
+			want:  "7",
+		},
+		// 		{
+		// 			name: "Hello World",
+		// 			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
+		// >---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
+		// 			want: "Hello World!",
+		// 		},
 	}
 
 	for _, test := range table {
