@@ -81,6 +81,41 @@ func TestInstruction(t *testing.T) {
 		instr.Fetch() // 1: [
 		assertInstructionPointer(t, instr, 2)
 	})
+
+	t.Run("[ jumps the pointer after the matching ] if current byte is zero", func(t *testing.T) {
+		stream := "[>+]+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+
+		instr.Fetch() // 0: [ -> 4: +
+		assertInstructionPointer(t, instr, 4)
+	})
+
+	t.Run("] moves the pointer foward if the current byte is zero", func(t *testing.T) {
+		stream := "]+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+
+		instr.Fetch()
+		assertInstructionPointer(t, instr, 1)
+		assertTapeValue(t, instr.tape, 1)
+	})
+
+	t.Run("] moves the pointer after the matching [ if the current byte is non-zero", func(t *testing.T) {
+		stream := "++[-]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil))
+
+		instr.Fetch() // 0: +
+		instr.Fetch() // 1: +
+		instr.Fetch() // 2: [ -> 3: -
+		assertInstructionPointer(t, instr, 3)
+		assertTapeValue(t, instr.tape, 1)
+		instr.Fetch() // 4: ] -> 3: -
+		assertInstructionPointer(t, instr, 3)
+		assertTapeValue(t, instr.tape, 0)
+	})
+
+	// t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
+
+	// })
 }
 
 func assertTokens(t testing.TB, got, want []rune) {

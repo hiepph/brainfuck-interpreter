@@ -55,7 +55,25 @@ func (instr *Instruction) Execute() {
 		if tape.data[tape.ptr] != 0 {
 			instr.Fetch()
 		} else {
-			//
+			for {
+				instr.ptr++
+				if instr.tokens[instr.ptr] == ']' {
+					break
+				}
+			}
+			instr.Fetch()
+		}
+	case ']':
+		if tape.data[tape.ptr] == 0 {
+			instr.Fetch()
+		} else {
+			for {
+				instr.ptr--
+				if instr.tokens[instr.ptr] == '[' {
+					break
+				}
+			}
+			instr.Fetch()
 		}
 	default:
 		return
