@@ -1,6 +1,6 @@
 all:
 	mkdir -p bin/
-	go build -o bin/bfint
+	go build -o bin/bf
 
 clean:
 	rm -rf bin/*
