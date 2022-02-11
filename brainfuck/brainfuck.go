@@ -16,8 +16,9 @@ var ACCEPTED_TOKENS = map[rune]bool{
 	',': true,
 }
 
-func Lex(in io.Reader) (tokens []rune) {
-	s := bufio.NewScanner(in)
+// Lex reads the source and collects only 8 acceppted tokens
+func Lex(program io.Reader) (tokens []rune) {
+	s := bufio.NewScanner(program)
 	s.Split(bufio.ScanRunes)
 	for s.Scan() {
 		ch := rune(s.Bytes()[0])
@@ -30,11 +31,8 @@ func Lex(in io.Reader) (tokens []rune) {
 }
 
 // Interprete reads the source, breaks down into operation tokens,
-// stores in an instruction array and traverses the array to evaluate the program
-//
-// + program: the program stream (e.g. from file)
-// + input: input stream (i.e stdin)
-// + output: output stream (i.e stdout)
+// stores in an instruction array and
+// traverses the array to evaluate the program.
 func Interprete(program io.Reader, in io.Reader, out io.Writer) {
 	tokens := Lex(program)
 

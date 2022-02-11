@@ -2,6 +2,7 @@ package brainfuck
 
 import "io"
 
+// Tape contains one dimensional array to store cell values
 type Tape struct {
 	data []int8
 	ptr  int

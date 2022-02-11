@@ -25,19 +25,18 @@ func (instr *Instruction) Fetch() bool {
 	return true
 }
 
-// Command modifies the memory tape or reads from input or writes to output
+// Execute modifies the memory tape or reads from input or writes to output
 // depending on the operator.
-//
-// >: increments the data pointer (points to the next cell on the right)
-// <: decrements the data pointer (points to the previous cell on the left)
-// +: increases by one the byte at the data pointer
-// -: decreases by one the byte at the data pointer
-// .: output the byte at the data pointer, using the ASCII character encoding
-// ,: accept one byte of input, storing its value in the byte at the pointer
-// [: if the byte at the data pointer is zero, jump forward to the command after
-//    ']'; move forward to the next command otherwise.
+// >: increments the data pointer (points to the next cell on the right).
+// <: decrements the data pointer (points to the previous cell on the left).
+// +: increases by one the byte at the data pointer.
+// -: decreases by one the byte at the data pointer.
+// .: output the byte at the data pointer, using the ASCII character encoding.
+// ,: accept one byte of input, storing its value in the byte at the pointer.
+// [: if the byte at the data pointer is zero, jump forward to the command
+// after ']'; move forward to the next command otherwise.
 // ]: if the byte at the data pointer is nonzero, jump back to the command
-//    after matching '['; move forward to the next command otherwise.
+// after matching '['; move forward to the next command otherwise.
 func (instr *Instruction) Execute() {
 	op := instr.tokens[instr.ptr]
 	tape := instr.tape
