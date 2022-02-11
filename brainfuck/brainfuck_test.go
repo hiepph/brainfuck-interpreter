@@ -7,23 +7,23 @@ import (
 )
 
 func TestLexer(t *testing.T) {
-	stream := `++
+	program := `++
 [ >- ]`
 
-	got := Lex(strings.NewReader(stream))
+	got := Lex(strings.NewReader(program))
 	want := []rune{'+', '+', '[', '>', '-', ']'}
 
 	assertTokens(t, got, want)
 }
 
-func NewTokens(stream string) []rune {
-	return Lex(strings.NewReader(stream))
+func NewTokens(program string) []rune {
+	return Lex(strings.NewReader(program))
 }
 
 func TestInstruction(t *testing.T) {
 	t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
-		stream := "+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "+"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // +
 		assertCannotFetch(t, instr.Fetch())
@@ -65,12 +65,12 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run(". output the byte at the data pointer", func(t *testing.T) {
-		var stream strings.Builder
+		var program strings.Builder
 		for i := 0; i < 72; i++ {
-			stream.WriteRune('+')
+			program.WriteRune('+')
 		}
-		stream.WriteRune('.')
-		tokens := NewTokens(stream.String())
+		program.WriteRune('.')
+		tokens := NewTokens(program.String())
 
 		out := &bytes.Buffer{}
 		instr := NewInstruction(tokens, NewTape(nil, out))
@@ -82,8 +82,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ moves the pointer forward if the current byte is non-zero", func(t *testing.T) {
-		stream := "+[>+]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "+[>+]"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [
@@ -91,16 +91,16 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ jumps the pointer after the matching ] if current byte is zero", func(t *testing.T) {
-		stream := "[>+]+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "[>+]+"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: [ -> 4: +
 		assertInstructionPointer(t, instr, 4)
 	})
 
 	t.Run("] moves the pointer foward if the current byte is zero", func(t *testing.T) {
-		stream := "]+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "]+"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch()
 		assertInstructionPointer(t, instr, 1)
@@ -108,8 +108,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("] moves the pointer after the matching [ if the current byte is non-zero", func(t *testing.T) {
-		stream := "++[-]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "++[-]"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: +
@@ -123,8 +123,8 @@ func TestInstruction(t *testing.T) {
 
 	t.Run(`[ jumps the ponter after the matching ]
 if the current byte is zero (double stacking brackets)`, func(t *testing.T) {
-		stream := "[+[>+++]+]+"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "[+[>+++]+]+"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: [ -> 10: +
 		assertInstructionPointer(t, instr, 10)
@@ -132,8 +132,8 @@ if the current byte is zero (double stacking brackets)`, func(t *testing.T) {
 
 	t.Run(`[ jumps the pointer after the matching ]
 if the current byte is zero (triple stacking brackets)`, func(t *testing.T) {
-		stream := "+[-[>[+]+]+]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "+[-[>[+]+]+]"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: -
@@ -143,8 +143,8 @@ if the current byte is zero (triple stacking brackets)`, func(t *testing.T) {
 
 	t.Run(`] moves the pointer after the matching [
 if the current byte is non-zero (double stacking brackets)`, func(t *testing.T) {
-		stream := "+[-[]+]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "+[-[]+]"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: -
@@ -158,8 +158,8 @@ if the current byte is non-zero (double stacking brackets)`, func(t *testing.T) 
 
 	t.Run(`] moves the pointer after the matching [
 if the current byte is non-zero (triple stacking brackets)`, func(t *testing.T) {
-		stream := "+[[-[]+]+]"
-		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
+		program := "+[[-[]+]+]"
+		instr := NewInstruction(NewTokens(program), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: [ -> 3: -
@@ -255,42 +255,42 @@ func assertCannotFetch(t *testing.T, isAvailableToFetch bool) {
 
 func TestIntegration(t *testing.T) {
 	table := []struct {
-		name   string
-		stream string
-		input  string
-		want   string
+		name    string
+		program string
+		input   string
+		want    string
 	}{
 		{
-			name:   "Single character",
-			stream: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
-			want:   "7",
+			name:    "Single character",
+			program: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
+			want:    "7",
 		},
 		{
-			name:   "string",
-			stream: ">+++++++++[<++++++>-]<...",
-			want:   "666",
+			name:    "string",
+			program: ">+++++++++[<++++++>-]<...",
+			want:    "666",
 		},
 		{
 			name: "Hello World",
-			stream: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
+			program: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
 >---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
 			want: "Hello World!\n",
 		},
 		{
-			name:   "echo input string",
-			stream: ",[.,]",
-			input:  "abc",
-			want:   "abc",
+			name:    "echo input string",
+			program: ",[.,]",
+			input:   "abc",
+			want:    "abc",
 		},
 		{
-			name:   "reverse input string",
-			stream: ">,[>,]<[.<]",
-			input:  "abc",
-			want:   "cba",
+			name:    "reverse input string",
+			program: ">,[>,]<[.<]",
+			input:   "abc",
+			want:    "cba",
 		},
 		{
 			name: "wc",
-			stream: `
+			program: `
 >>>+>>>>>+>>+>>+[<<],[
     -[-[-[-[-[-[-[-[<+>-[>+<-[>-<-[-[-[<++[<++++++>-]<
         [>>[-<]<[>]<-]>>[<+>-[<->[-]]]]]]]]]]]]]]]]
@@ -312,7 +312,7 @@ This is another line.`,
 		t.Run(test.name, func(t *testing.T) {
 			in := strings.NewReader(test.input)
 			out := &bytes.Buffer{}
-			instr := NewInstruction(NewTokens(test.stream), NewTape(in, out))
+			instr := NewInstruction(NewTokens(test.program), NewTape(in, out))
 
 			for ok := instr.Fetch(); ok; ok = instr.Fetch() {
 			}

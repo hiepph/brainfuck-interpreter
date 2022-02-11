@@ -1,12 +1,12 @@
 package main
 
 import (
-	"strings"
+	"os"
 
 	"github.com/hiepph/brainfuck-interpreter/brainfuck"
 )
 
 func main() {
-	in := "++>+++++"
-	brainfuck.Interprete(strings.NewReader(in))
+	file, _ := os.Open("examples/echo.bf")
+	brainfuck.Interprete(file, os.Stdin, os.Stdout)
 }
