@@ -1,5 +1,5 @@
 * Overview
-  Brainfuck interpreter written in Go.
+  [[https://www.wikiwand.com/en/Brainfuck][Brainfuck]] interpreter written in Go.
 
   Due to the simplicity of a Brainfuck program, my interpreter is super simple with only 2 stages:
 
@@ -16,21 +16,20 @@
 ] 	If the byte at the data pointer is nonzero, then instead of moving the instruction pointer forward to the next command, jump it back to the command after the matching [ command.
     #+end_example
 
-    [[https://www.wikiwand.com/en/Brainfuck][source]]
-
   + Evaluation: utilizes Fetch and Execute cycle. The instruction pointer naively moves left and right in the instruction array.
 
 * Usage
   + Build the program:
+
     #+begin_src bash
 make
     #+end_src
 
-    + Run the program, choose some examples from =examples/=:
+   + Run the program, choose some examples from =examples/=:
 
       #+begin_src bash
 bin/bf examples/hello.bf
-      #+end_src
+     #+end_src
 
 * Examles
   I also provided some examples so we can try directly the interpreter.
@@ -49,4 +48,4 @@ bin/bf examples/hello.bf
   + [[https://www.nayuki.io/page/brainfuck-interpreter-javascript][Brainfuck interpreter in Javascript (interactive)]]
 
 * Improvement
-  + [] Add parser for checking syntax error, e.g. unmatched brackets.
+  - [ ] Add parser for checking syntax error, e.g. unmatched brackets.
