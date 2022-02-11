@@ -33,6 +33,7 @@ func (instr *Instruction) Fetch() bool {
 // +: increases by one the byte at the data pointer
 // -: decreases by one the byte at the data pointer
 // .: output the byte at the data pointer, using the ASCII character encoding
+// ,: accept one byte of input, storing its value in the byte at the pointer
 // [: if the byte at the data pointer is zero, jump forward to the command after
 //    ']'; move forward to the next command otherwise.
 // ]: if the byte at the data pointer is nonzero, jump back to the command
@@ -52,6 +53,10 @@ func (instr *Instruction) Execute() {
 		tape.ptr--
 	case '.':
 		fmt.Fprintf(tape.out, "%c", instr.tape.data[tape.ptr])
+	case ',':
+		buf := make([]byte, 1)
+		tape.in.Read(buf)
+		tape.data[tape.ptr] = int8(buf[0])
 	case '[':
 		if tape.data[tape.ptr] != 0 {
 			instr.level++

@@ -7,23 +7,23 @@ import (
 )
 
 func TestLexer(t *testing.T) {
-	input := `++
+	stream := `++
 [ >- ]`
 
-	got := Lex(strings.NewReader(input))
+	got := Lex(strings.NewReader(stream))
 	want := []rune{'+', '+', '[', '>', '-', ']'}
 
 	assertTokens(t, got, want)
 }
 
-func NewTokens(input string) []rune {
-	return Lex(strings.NewReader(input))
+func NewTokens(stream string) []rune {
+	return Lex(strings.NewReader(stream))
 }
 
 func TestInstruction(t *testing.T) {
 	t.Run("Do nothing if there are no instructions left to fetch", func(t *testing.T) {
-		input := "+"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // +
 		assertCannotFetch(t, instr.Fetch())
@@ -31,7 +31,7 @@ func TestInstruction(t *testing.T) {
 
 	t.Run("moves forward to the next token", func(t *testing.T) {
 		tokens := NewTokens("+-")
-		instr := NewInstruction(tokens, NewTape(nil))
+		instr := NewInstruction(tokens, NewTape(nil, nil))
 
 		instr.Fetch()
 		assertInstructionPointer(t, instr, 0)
@@ -42,7 +42,7 @@ func TestInstruction(t *testing.T) {
 
 	t.Run("+ increments and - decrements the byte at data pointer", func(t *testing.T) {
 		tokens := NewTokens("+-")
-		instr := NewInstruction(tokens, NewTape(nil))
+		instr := NewInstruction(tokens, NewTape(nil, nil))
 
 		instr.Fetch()
 		assertTapePointer(t, instr.tape, 0)
@@ -55,7 +55,7 @@ func TestInstruction(t *testing.T) {
 
 	t.Run("> moves the pointer to the right and < moves it to the left", func(t *testing.T) {
 		tokens := NewTokens("><")
-		instr := NewInstruction(tokens, NewTape(nil))
+		instr := NewInstruction(tokens, NewTape(nil, nil))
 
 		instr.Fetch()
 		assertTapePointer(t, instr.tape, 1)
@@ -65,15 +65,15 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run(". output the byte at the data pointer", func(t *testing.T) {
-		var input strings.Builder
+		var stream strings.Builder
 		for i := 0; i < 72; i++ {
-			input.WriteRune('+')
+			stream.WriteRune('+')
 		}
-		input.WriteRune('.')
-		tokens := NewTokens(input.String())
+		stream.WriteRune('.')
+		tokens := NewTokens(stream.String())
 
 		out := &bytes.Buffer{}
-		instr := NewInstruction(tokens, NewTape(out))
+		instr := NewInstruction(tokens, NewTape(nil, out))
 
 		for ok := instr.Fetch(); ok; ok = instr.Fetch() {
 		}
@@ -82,8 +82,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ moves the pointer forward if the current byte is non-zero", func(t *testing.T) {
-		input := "+[>+]"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "+[>+]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [
@@ -91,16 +91,16 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("[ jumps the pointer after the matching ] if current byte is zero", func(t *testing.T) {
-		input := "[>+]+"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "[>+]+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: [ -> 4: +
 		assertInstructionPointer(t, instr, 4)
 	})
 
 	t.Run("] moves the pointer foward if the current byte is zero", func(t *testing.T) {
-		input := "]+"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "]+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch()
 		assertInstructionPointer(t, instr, 1)
@@ -108,8 +108,8 @@ func TestInstruction(t *testing.T) {
 	})
 
 	t.Run("] moves the pointer after the matching [ if the current byte is non-zero", func(t *testing.T) {
-		input := "++[-]"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "++[-]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: +
@@ -123,8 +123,8 @@ func TestInstruction(t *testing.T) {
 
 	t.Run(`[ jumps the ponter after the matching ]
 if the current byte is zero (double stacking brackets)`, func(t *testing.T) {
-		input := "[+[>+++]+]+"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "[+[>+++]+]+"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: [ -> 10: +
 		assertInstructionPointer(t, instr, 10)
@@ -132,8 +132,8 @@ if the current byte is zero (double stacking brackets)`, func(t *testing.T) {
 
 	t.Run(`[ jumps the pointer after the matching ]
 if the current byte is zero (triple stacking brackets)`, func(t *testing.T) {
-		input := "+[-[>[+]+]+]"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "+[-[>[+]+]+]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: -
@@ -143,8 +143,8 @@ if the current byte is zero (triple stacking brackets)`, func(t *testing.T) {
 
 	t.Run(`] moves the pointer after the matching [
 if the current byte is non-zero (double stacking brackets)`, func(t *testing.T) {
-		input := "+[-[]+]"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "+[-[]+]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: -
@@ -158,8 +158,8 @@ if the current byte is non-zero (double stacking brackets)`, func(t *testing.T) 
 
 	t.Run(`] moves the pointer after the matching [
 if the current byte is non-zero (triple stacking brackets)`, func(t *testing.T) {
-		input := "+[[-[]+]+]"
-		instr := NewInstruction(NewTokens(input), NewTape(nil))
+		stream := "+[[-[]+]+]"
+		instr := NewInstruction(NewTokens(stream), NewTape(nil, nil))
 
 		instr.Fetch() // 0: +
 		instr.Fetch() // 1: [ -> 2: [ -> 3: -
@@ -167,6 +167,27 @@ if the current byte is non-zero (triple stacking brackets)`, func(t *testing.T) 
 		instr.Fetch() // 7: [ -> 3: -
 		assertInstructionPointer(t, instr, 3)
 		assertInstructionValue(t, instr, '-')
+	})
+
+	t.Run(", receives one char from input and stores it in the current byte", func(t *testing.T) {
+		in := &bytes.Buffer{}
+		instr := NewInstruction(NewTokens(","), NewTape(in, nil))
+
+		in.WriteRune('a')
+		instr.Fetch()
+		assertInstructionPointer(t, instr, 0)
+		assertTapeValue(t, instr.tape, 'a')
+	})
+
+	t.Run(", reads multiple chars from input", func(t *testing.T) {
+		in := strings.NewReader("ab")
+		instr := NewInstruction(NewTokens(",>,"), NewTape(in, nil))
+
+		for i := 0; i < 3; i++ {
+			instr.Fetch()
+		}
+		assertTapePointer(t, instr.tape, 1)
+		assertTapeValue(t, instr.tape, 'b')
 	})
 }
 
@@ -212,7 +233,7 @@ func assertTapePointer(t *testing.T, tape *Tape, want int) {
 func assertTapeValue(t *testing.T, tape *Tape, want int8) {
 	t.Helper()
 
-	got := tape.data[0]
+	got := tape.data[tape.ptr]
 	if got != want {
 		t.Errorf("value: got %d want %d", got, want)
 	}
@@ -234,33 +255,46 @@ func assertCannotFetch(t *testing.T, isAvailableToFetch bool) {
 
 func TestIntegration(t *testing.T) {
 	table := []struct {
-		name  string
-		input string
-		want  string
+		name   string
+		stream string
+		input  string
+		want   string
 	}{
 		{
-			// refer: https://www.wikiwand.com/en/Brainfuck
-			name:  "Single character",
-			input: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
-			want:  "7",
+			name:   "Single character",
+			stream: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
+			want:   "7",
 		},
 		{
-			name:  "string",
-			input: ">+++++++++[<++++++>-]<...",
-			want:  "666",
+			name:   "string",
+			stream: ">+++++++++[<++++++>-]<...",
+			want:   "666",
 		},
 		{
 			name: "Hello World",
-			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
+			stream: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
 >---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
 			want: "Hello World!\n",
+		},
+		{
+			name:   "echo input string",
+			stream: ",[.,]",
+			input:  "abc",
+			want:   "abc",
+		},
+		{
+			name:   "reverse input string",
+			stream: ">,[>,]<[.<]",
+			input:  "abc",
+			want:   "cba",
 		},
 	}
 
 	for _, test := range table {
 		t.Run(test.name, func(t *testing.T) {
+			in := strings.NewReader(test.input)
 			out := &bytes.Buffer{}
-			instr := NewInstruction(NewTokens(test.input), NewTape(out))
+			instr := NewInstruction(NewTokens(test.stream), NewTape(in, out))
 
 			for ok := instr.Fetch(); ok; ok = instr.Fetch() {
 			}

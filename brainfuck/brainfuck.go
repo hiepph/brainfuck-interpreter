@@ -34,7 +34,7 @@ func Lex(in io.Reader) (tokens []rune) {
 func Interprete(in io.Reader, out io.Writer) {
 	tokens := Lex(in)
 
-	tape := NewTape(out)
+	tape := NewTape(in, out)
 
 	instr := NewInstruction(tokens, tape)
 	instr.Fetch()
