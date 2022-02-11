@@ -120,6 +120,54 @@ func TestInstruction(t *testing.T) {
 		assertInstructionPointer(t, instr, 3)
 		assertTapeValue(t, instr.tape, 0)
 	})
+
+	t.Run(`[ jumps the ponter after the matching ]
+if the current byte is zero (double stacking brackets)`, func(t *testing.T) {
+		input := "[+[>+++]+]+"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
+
+		instr.Fetch() // 0: [ -> 10: +
+		assertInstructionPointer(t, instr, 10)
+	})
+
+	t.Run(`[ jumps the pointer after the matching ]
+if the current byte is zero (triple stacking brackets)`, func(t *testing.T) {
+		input := "+[-[>[+]+]+]"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
+
+		instr.Fetch() // 0: +
+		instr.Fetch() // 1: [ -> 2: -
+		instr.Fetch() // 3: [ -> 10: ]
+		assertInstructionPointer(t, instr, 10)
+	})
+
+	t.Run(`] moves the pointer after the matching [
+if the current byte is non-zero (double stacking brackets)`, func(t *testing.T) {
+		input := "+[-[]+]"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
+
+		instr.Fetch() // 0: +
+		instr.Fetch() // 1: [ -> 2: -
+		instr.Fetch() // 3: [ -> 5: +
+		assertInstructionPointer(t, instr, 5)
+		assertInstructionValue(t, instr, '+')
+		instr.Fetch() // 6: ] -> 2: -
+		assertInstructionPointer(t, instr, 2)
+		assertInstructionValue(t, instr, '-')
+	})
+
+	t.Run(`] moves the pointer after the matching [
+if the current byte is non-zero (triple stacking brackets)`, func(t *testing.T) {
+		input := "+[[-[]+]+]"
+		instr := NewInstruction(NewTokens(input), NewTape(nil))
+
+		instr.Fetch() // 0: +
+		instr.Fetch() // 1: [ -> 2: [ -> 3: -
+		instr.Fetch() // 4: [ -> 6: +
+		instr.Fetch() // 7: [ -> 3: -
+		assertInstructionPointer(t, instr, 3)
+		assertInstructionValue(t, instr, '-')
+	})
 }
 
 func assertTokens(t testing.TB, got, want []rune) {
@@ -140,6 +188,15 @@ func assertInstructionPointer(t *testing.T, instr *Instruction, want int) {
 	got := instr.ptr
 	if got != want {
 		t.Errorf("pointer: got %d want %d", got, want)
+	}
+}
+
+func assertInstructionValue(t *testing.T, instr *Instruction, want rune) {
+	t.Helper()
+
+	got := instr.tokens[instr.ptr]
+	if got != want {
+		t.Errorf("pointer: got %c want %c", got, want)
 	}
 }
 
@@ -187,12 +244,12 @@ func TestIntegration(t *testing.T) {
 			input: "++ > +++++ [ <+ >- ] ++++ ++++ [ <+++ +++ >- ] < . ",
 			want:  "7",
 		},
-		// 		{
-		// 			name: "Hello World",
-		// 			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
-		// >---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
-		// 			want: "Hello World!",
-		// 		},
+		{
+			name: "Hello World",
+			input: `++++++++[>++++[>++>+++>+++>+<<<<-]>+>->+>>+[<]<-]>>.>
+>---.+++++++..+++.>.<<-.>.+++.------.--------.>+.>++.`,
+			want: "Hello World!\n",
+		},
 	}
 
 	for _, test := range table {

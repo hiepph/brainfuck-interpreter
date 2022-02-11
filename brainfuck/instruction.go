@@ -6,10 +6,11 @@ type Instruction struct {
 	ptr    int
 	tokens []rune
 	tape   *Tape
+	level  int
 }
 
 func NewInstruction(tokens []rune, tape *Tape) *Instruction {
-	return &Instruction{ptr: -1, tokens: tokens, tape: tape}
+	return &Instruction{ptr: -1, tokens: tokens, tape: tape, level: 0}
 }
 
 // Fetch increase moves the pointer to the next tokens.
@@ -53,24 +54,44 @@ func (instr *Instruction) Execute() {
 		fmt.Fprintf(tape.out, "%c", instr.tape.data[tape.ptr])
 	case '[':
 		if tape.data[tape.ptr] != 0 {
+			instr.level++
 			instr.Fetch()
 		} else {
+			currentLevel := instr.level
+
 			for {
 				instr.ptr++
+				if instr.tokens[instr.ptr] == '[' {
+					instr.level++
+				}
+
 				if instr.tokens[instr.ptr] == ']' {
-					break
+					if currentLevel == instr.level {
+						break
+					}
+					instr.level--
 				}
 			}
 			instr.Fetch()
 		}
 	case ']':
 		if tape.data[tape.ptr] == 0 {
+			instr.level--
 			instr.Fetch()
 		} else {
+			currentLevel := instr.level
+
 			for {
 				instr.ptr--
+				if instr.tokens[instr.ptr] == ']' {
+					instr.level--
+				}
+
 				if instr.tokens[instr.ptr] == '[' {
-					break
+					if currentLevel == instr.level {
+						break
+					}
+					instr.level++
 				}
 			}
 			instr.Fetch()
