@@ -1,12 +1,52 @@
 * Overview
   Brainfuck interpreter written in Go.
 
-  + Lexer
-  + Fetch and Execute cycle
+  Due to the simplicity of a Brainfuck program, my interpreter is super simple with only 2 stages:
+
+  + Lexer: reads the source code and collects only 8 accepted tokens.
+
+    #+begin_example
+> 	Increment the data pointer (to point to the next cell to the right).
+< 	Decrement the data pointer (to point to the next cell to the left).
++ 	Increment (increase by one) the byte at the data pointer.
+- 	Decrement (decrease by one) the byte at the data pointer.
+. 	Output the byte at the data pointer.
+, 	Accept one byte of input, storing its value in the byte at the data pointer.
+[ 	If the byte at the data pointer is zero, then instead of moving the instruction pointer forward to the next command, jump it forward to the command after the matching ] command.
+] 	If the byte at the data pointer is nonzero, then instead of moving the instruction pointer forward to the next command, jump it back to the command after the matching [ command.
+    #+end_example
+
+    [[https://www.wikiwand.com/en/Brainfuck][source]]
+
+  + Evaluation: utilizes Fetch and Execute cycle. The instruction pointer naively moves left and right in the instruction array.
 
 * Usage
+  + Build the program:
+    #+begin_src bash
+make
+    #+end_src
+
+    + Run the program, choose some examples from =examples/=:
+
+      #+begin_src bash
+bin/bf examples/hello.bf
+      #+end_src
+
+* Examles
+  I also provided some examples so we can try directly the interpreter.
+
+  + =hello.bf=: prints =Hello World!= to stdout.
+  + =echo.bf=: echoes your input to stdout.
+  + =reverse.bf=: reverses your input string.
+
+  You can find various examples here:[[https://github.com/fabianishere/brainfuck/tree/master/examples][ link]]
 
 * Reference
-  [[https://www.wikiwand.com/en/Brainfuck][wiki]]
+  + [[https://gist.github.com/roachhd/dce54bec8ba55fb17d3a][Basics of brainfuck]]
 
-  [[https://gist.github.com/roachhd/dce54bec8ba55fb17d3a][basics of brainfuck]]
+  + [[https://github.com/fabianishere/brainfuck][Brainfuck interpreter written in C]]
+
+  + [[https://www.nayuki.io/page/brainfuck-interpreter-javascript][Brainfuck interpreter in Javascript (interactive)]]
+
+* Improvement
+  + [] Add parser for checking syntax error, e.g. unmatched brackets.
