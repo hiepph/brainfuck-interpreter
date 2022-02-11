@@ -25,7 +25,7 @@
 make
     #+end_src
 
-   + Run the program, choose some examples from =examples/=:
+  + Run the program, choose some examples from =examples/=:
 
       #+begin_src bash
 bin/bf examples/hello.bf
