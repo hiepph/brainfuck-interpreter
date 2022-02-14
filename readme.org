@@ -31,7 +31,7 @@ make
 bin/bf examples/hello.bf
      #+end_src
 
-* Examles
+* Examples
   I also provided some examples so we can try directly the interpreter.
 
   + =hello.bf=: prints =Hello World!= to stdout.
