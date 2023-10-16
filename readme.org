@@ -46,6 +46,3 @@ bin/bf examples/hello.bf
   + [[https://github.com/fabianishere/brainfuck][Brainfuck interpreter written in C]]
 
   + [[https://www.nayuki.io/page/brainfuck-interpreter-javascript][Brainfuck interpreter in Javascript (interactive)]]
-
-* Improvement
-  - [ ] Add parser for checking syntax error, e.g. unmatched brackets.
